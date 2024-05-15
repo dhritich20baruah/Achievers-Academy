@@ -10,7 +10,7 @@ export default function Home() {
         alt="background"
         width={500}
         height={500}
-        className="fixed top-0 left-0 w-full z-0 opacity-50"
+        className="fixed top-0 left-0 w-full z-0 opacity-90"
       />
       <div className="hero relative h-screen">
         <div className="flex justify-center absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-10">
