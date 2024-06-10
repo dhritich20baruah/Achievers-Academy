@@ -2,14 +2,16 @@ import { NextResponse } from "next/server";
 import { pool } from "@/utils/dbConnect";
 
 export const POST = async (req: Request, res: Response) => {
-  const { notice, written_on } = await req.json();
+  const { testName, questionset } = await req.json();
   try {
-    const newNotice = await pool.query(
-      `INSERT INTO notices (notice, written_on) VALUES ($1, $2) RETURNING *`,
-      [notice, written_on]
+    const questionsetString = JSON.stringify(questionset);
+
+    const newTest = await pool.query(
+      `INSERT INTO questions (testName, questionset) VALUES ($1, $2::jsonb) RETURNING *`,
+      [testName, questionsetString]
     );
-    console.log(newNotice.rows[0]);
-    return NextResponse.json({ status: "OK", newNotice });
+    console.log(newTest.rows[0]);
+    return NextResponse.json({ status: "OK", newTest });
   } catch (error) {
     return NextResponse.json(
         {
@@ -25,10 +27,10 @@ export const POST = async (req: Request, res: Response) => {
 
 export const GET = async (req: Request, res: Response) => {
   try {
-    const data = await pool.query(`SELECT * FROM notices`);
-    const notices = data.rows;
-    console.log(notices)
-    return NextResponse.json(notices)
+    const data = await pool.query(`SELECT * FROM questions`);
+    const questionSet = data.rows;
+    console.log(questionSet)
+    return NextResponse.json(questionSet)
   } catch (error) {
     console.log(error)
     NextResponse.json(error)
