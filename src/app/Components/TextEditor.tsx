@@ -3,7 +3,7 @@ import React, {useContext, useMemo, useState} from 'react'
 import dynamic from 'next/dynamic'
 import "react-quill/dist/quill.snow.css"
 import axios from "axios"
-
+import { useRouter } from 'next/navigation'
 
 const TextEditor = () => {
     const DynamicEditor = useMemo(()=>{
@@ -34,9 +34,41 @@ const TextEditor = () => {
     };
 
     const [examTitle, setExamTitle] = useState('');
-    const [question, setQuestion] = useState('')
     const [answer, setAnswer] = useState('')
     const [questionNum, setQuestionNum] = useState(0)
+    const [testName, setTestName] = useState('');
+    const [question, setQuestion] = useState([])
+    const [questions, setQuestions] = useState([{ number: '', question: '', options: [], status: 'notvisited', solution: '', answer: '', response: '', result: '', section: '' }]);
+    const router = useRouter();
+
+    const handleSubmit = async () => {
+      // e.preventDefault();
+      const questionset = questions.map((q) => ({ ...q, options: q.options.split(',') }));
+  
+      const res = await fetch('/api/questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ testName, questionset })
+      });
+  
+      if (res.ok) {
+        router.push('/tests');
+      } else {
+        console.error('Failed to create test');
+      }
+    };
+
+    const handleQuestionChange = (index, key, value) => {
+      const newQuestions = [...questions];
+      newQuestions[index][key] = value;
+      setQuestions(newQuestions);
+    };
+  
+    const addQuestion = () => {
+      setQuestions([...questions, { number: '', question: '', options: [], status: 'notvisited', solution: '', answer: '', response: '', result: '', section: '' }]);
+    };
 
     async function submitHandler(event: React.FormEvent){
         event.preventDefault();
@@ -62,6 +94,7 @@ const TextEditor = () => {
     }
 
    return(
+    <>
     <form onSubmit={submitHandler} className="space-y-3">
       <label htmlFor="title">Exam Title</label>
       <br />
@@ -87,6 +120,26 @@ const TextEditor = () => {
       />
       <button className="p-1 my-4 bg-green-900 text-white font-bold hover:bg-red-900" type="submit">Save</button>
     </form>
+    <form onSubmit={handleSubmit}>
+        <div>
+          <label>Test Name:</label>
+          <input type="text" value={testName} onChange={(e) => setTestName(e.target.value)} required />
+        </div>
+        {questions.map((q, index) => (
+          <div key={index}>
+            <label>Question {index + 1}:</label>
+            <input type="text" placeholder="Number" value={q.number} onChange={(e) => handleQuestionChange(index, 'number', e.target.value)} required />
+            <input type="text" placeholder="Question" value={q.question} onChange={(e) => handleQuestionChange(index, 'question', e.target.value)} required />
+            <input type="text" placeholder="Options (comma separated)" value={q.options} onChange={(e) => handleQuestionChange(index, 'options', e.target.value)} required />
+            <input type="text" placeholder="Solution" value={q.solution} onChange={(e) => handleQuestionChange(index, 'solution', e.target.value)} required />
+            <input type="text" placeholder="Answer" value={q.answer} onChange={(e) => handleQuestionChange(index, 'answer', e.target.value)} required />
+            <input type="text" placeholder="Section" value={q.section} onChange={(e) => handleQuestionChange(index, 'section', e.target.value)} required />
+          </div>
+        ))}
+        <button type="button" onClick={addQuestion}>Add Question</button>
+        <button type="submit">Submit</button>
+      </form>
+    </>
     )
 }
 
